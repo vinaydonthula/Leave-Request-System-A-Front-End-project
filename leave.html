@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+  <meta charset="UTF-8">
+  <title>Leave Calendar</title>
+  
+  <style>
+    
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(to right, #a1c4fd, #c2e9fb);
+      padding: 30px;
+      text-align: center;
+    }
+
+    h1, h2 {
+      margin-bottom: 20px;
+    }
+
+    table {
+      margin: 0 auto;
+      width: 80%;
+      border-collapse: collapse;
+      margin-bottom: 40px;
+      background-color: white;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    table th, table td {
+      padding: 12px;
+      border: 1px solid #ddd;
+    }
+
+    table th {
+      background-color: #4a47a3;
+      color: white;
+    }
+
+    #calendar {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .date-box {
+      background: #fff;
+      border: 2px solid #4a47a3;
+      margin: 5px;
+      padding: 10px;
+      border-radius: 8px;
+      width: 140px;
+      text-align: center;
+    }
+
+    .highlight {
+      background-color: #ffeb3b;
+      border-color: #f57c00;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Leave Calendar View</h1>
+
+  <h2>Leave Requests (Table)</h2>
+  <table id="leave-table">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Start Date</th>
+        <th>End Date</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <h2>Leave Dates (Highlighted)</h2>
+  <div id="calendar"></div>
+
+  <script>
+    function renderLeaveTable(leaves) {
+      const tableBody = document.querySelector("#leave-table tbody");
+      tableBody.innerHTML = "";
+
+      leaves.forEach(leave => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${leave.name}</td>
+          <td>${leave.startDate}</td>
+          <td>${leave.endDate}</td>
+        `;
+        tableBody.appendChild(row);
+      });
+    }
+
+    function renderCalendar(leaves) {
+      const calendar = document.getElementById("calendar");
+      calendar.innerHTML = "";
+
+      const dateMap = {};
+
+      leaves.forEach(leave => {
+        const start = new Date(leave.startDate);
+        const end = new Date(leave.endDate);
+        const current = new Date(start);
+
+        while (current <= end) {
+          const key = current.toDateString();
+          if (!dateMap[key]) dateMap[key] = [];
+          dateMap[key].push(leave.name);
+          current.setDate(current.getDate() + 1);
+        }
+      });
+
+      const sortedDates = Object.keys(dateMap).sort(
+        (a, b) => new Date(a) - new Date(b)
+      );
+
+      sortedDates.forEach(date => {
+        const box = document.createElement("div");
+        box.className = "date-box highlight";
+        box.innerHTML = `<strong>${date}</strong><br>${dateMap[date].join(", ")}`;
+        calendar.appendChild(box);
+      });
+    }
+
+    function init() {
+      const leaves = JSON.parse(localStorage.getItem("leaveRequests")) || [];
+
+      if (leaves.length === 0) {
+        document.getElementById("calendar").innerHTML = "<p>No leave data yet.</p>";
+        return;
+      }
+
+      renderLeaveTable(leaves);
+      renderCalendar(leaves);
+    }
+
+    init();
+  </script>
+
+</body>
+</html>
