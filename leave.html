@@ -1,71 +1,129 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-
   <meta charset="UTF-8">
   <title>Leave Calendar</title>
-  
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+
   <style>
-    
-    body {
-      font-family: Arial, sans-serif;
-      background: linear-gradient(to right, #a1c4fd, #c2e9fb);
-      padding: 30px;
-      text-align: center;
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    .date-box {
+      width: 260px;
+      background: white;
+      border-radius: 15px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      padding: 25px;
+      transition: all 0.3s ease;
+      border: 2px solid transparent;
     }
 
-    h1, h2 {
-      margin-bottom: 20px;
-    }
-
-    table {
-      margin: 0 auto;
-      width: 80%;
-      border-collapse: collapse;
-      margin-bottom: 40px;
-      background-color: white;
-      border-radius: 10px;
-      overflow: hidden;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    }
-
-    table th, table td {
-      padding: 12px;
-      border: 1px solid #ddd;
-    }
-
-    table th {
-      background-color: #4a47a3;
+    .date-box.highlight {
+      background: linear-gradient(to right, #6a11cb, #2575fc);
       color: white;
     }
 
+    .date-box.highlight:hover {
+      background: linear-gradient(to right, #5d54a4, #6190e8); /* soft bluish gradient on hover */
+      border-color: #1d2671;
+      color: white;
+      transform: translateY(-6px);
+    }
+
+    .name {
+      font-size: 22px;
+      font-weight: bold;
+      margin-bottom: 12px;
+      color: #2c3e50;
+    }
+
+    .date-range {
+      font-size: 18px;
+      color: #34495e;
+      margin-top: 5px;
+    }
+
+    body {
+      font-family: 'Roboto', sans-serif;
+      background: linear-gradient(to right, #89f7fe, #66a6ff);
+      min-height: 100vh;
+      padding: 40px 20px;
+      text-align: center;
+      overflow-x: hidden;
+    }
+
+    h1, h2 {
+      color: #2c3e50;
+      margin-bottom: 20px;
+      font-weight: 700;
+    }
+
+    table {
+      margin: 30px auto;
+      width: 90%;
+      border-collapse: separate;
+      border-spacing: 0;
+      background: white;
+      border-radius: 15px;
+      overflow: hidden;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+
+    th, td {
+      padding: 15px 20px;
+      border-bottom: 1px solid #eee;
+      color: #34495e;
+    }
+
+    th {
+      background-color: #3498db;
+      color: white;
+      font-size: 18px;
+      letter-spacing: 0.5px;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
     #calendar {
+      margin-top: 40px;
       display: flex;
       flex-wrap: wrap;
       justify-content: center;
+      gap: 20px;
     }
 
-    .date-box {
-      background: #fff;
-      border: 2px solid #4a47a3;
-      margin: 5px;
-      padding: 10px;
-      border-radius: 8px;
-      width: 140px;
-      text-align: center;
+    .highlight .name {
+      color: white;
     }
 
-    .highlight {
-      background-color: #ffeb3b;
-      border-color: #f57c00;
+    .highlight .date-range {
+      color: #dcdde1;
+    }
+
+    p {
+      margin-top: 30px;
+      font-size: 18px;
+      color: #2c3e50;
+    }
+
+    @media (max-width: 600px) {
+      .date-box {
+        width: 90%;
+      }
     }
   </style>
 </head>
+
 <body>
 
-  <h1>Leave Calendar View</h1>
+  <h1>🚀 Leave Calendar View</h1>
 
-  <h2>Leave Requests (Table)</h2>
+  <h2>📋 Leave Requests</h2>
   <table id="leave-table">
     <thead>
       <tr>
@@ -77,10 +135,20 @@
     <tbody></tbody>
   </table>
 
-  <h2>Leave Dates (Highlighted)</h2>
+  <h2>📅 Leave Summary</h2>
   <div id="calendar"></div>
 
   <script>
+    // Function to format dates to DD/MM/YYYY format
+    function formatDate(date) {
+      const d = new Date(date);
+      const day = String(d.getDate()).padStart(2, '0'); // Add leading 0 if single digit
+      const month = String(d.getMonth() + 1).padStart(2, '0'); // Month is 0-indexed
+      const year = d.getFullYear(); // Get full year (4 digits)
+
+      return `${day}/${month}/${year}`; // Return in DD/MM/YYYY format
+    }
+
     function renderLeaveTable(leaves) {
       const tableBody = document.querySelector("#leave-table tbody");
       tableBody.innerHTML = "";
@@ -89,8 +157,8 @@
         const row = document.createElement("tr");
         row.innerHTML = `
           <td>${leave.name}</td>
-          <td>${leave.startDate}</td>
-          <td>${leave.endDate}</td>
+          <td>${formatDate(leave.startDate)}</td>
+          <td>${formatDate(leave.endDate)}</td>
         `;
         tableBody.appendChild(row);
       });
@@ -100,29 +168,13 @@
       const calendar = document.getElementById("calendar");
       calendar.innerHTML = "";
 
-      const dateMap = {};
-
       leaves.forEach(leave => {
-        const start = new Date(leave.startDate);
-        const end = new Date(leave.endDate);
-        const current = new Date(start);
-
-        while (current <= end) {
-          const key = current.toDateString();
-          if (!dateMap[key]) dateMap[key] = [];
-          dateMap[key].push(leave.name);
-          current.setDate(current.getDate() + 1);
-        }
-      });
-
-      const sortedDates = Object.keys(dateMap).sort(
-        (a, b) => new Date(a) - new Date(b)
-      );
-
-      sortedDates.forEach(date => {
         const box = document.createElement("div");
         box.className = "date-box highlight";
-        box.innerHTML = `<strong>${date}</strong><br>${dateMap[date].join(", ")}`;
+        box.innerHTML = `
+          <div class="name">${leave.name}</div>
+          <div class="date-range">${formatDate(leave.startDate)} ➔ ${formatDate(leave.endDate)}</div>
+        `;
         calendar.appendChild(box);
       });
     }
@@ -131,12 +183,26 @@
       const leaves = JSON.parse(localStorage.getItem("leaveRequests")) || [];
 
       if (leaves.length === 0) {
-        document.getElementById("calendar").innerHTML = "<p>No leave data yet.</p>";
+        document.getElementById("calendar").innerHTML = "<p>No leave data yet. ✈️</p>";
         return;
       }
 
       renderLeaveTable(leaves);
       renderCalendar(leaves);
+    }
+    
+    function removeDuplicatesByPerson(leaves) {
+      const seenNames = new Set();
+      const filtered = [];
+
+      leaves.forEach(leave => {
+        if (!seenNames.has(leave.name)) {
+          seenNames.add(leave.name);
+          filtered.push(leave);
+        }
+      });
+
+      return filtered;
     }
 
     init();
